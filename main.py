@@ -36,6 +36,7 @@ def train():
     trainer=gluon.Trainer(params=params,optimizer=optimizer)
     triplet_loss = gluon.loss.TripletLoss()  # TripletLoss损失函数
 
+    num_step=0
     for epoch in range(30):
         print('epoch:{}'.format(epoch))
         tic=time.time()
@@ -44,8 +45,29 @@ def train():
         val_data=loader.loadData(list_path_living=val_path_living,list_path_spoof=val_path_spoof,batch_size=batch_size,num_seq=num_seq,color=color,
                                    is_train=False,random=random)
 
+        train_loss,correct,total=[0,0,0]
+        for data,label in train_data:
+            num_step+=1
+            data=data.copyto(ctx)
+            label=label.copyto(ctx)
 
-
+            data_anchor=data[:,0,:,:,:]
+            data_positive=data[:,1,:,:,:]
+            data_negative=data[:,2,:,:,:]
+            # data_a=data_anchor.reshape(data_anchor.shape[0]*data_anchor.shape[1],data_anchor.shape[2])
+            with ag.record():
+                feat_anchor=backbone(data_anchor)
+                y_anchor=out_net(feat_anchor)
+                feat_positive=backbone(data_positive)
+                y_positve=out_net(feat_positive)
+                feat_negative=backbone(data_negative)
+                y_negative=out_net(feat_negative)
+                loss=triplet_loss(y_anchor,y_positve,y_negative)
+                loss=loss.sum()
+            loss.backward()
+            trainer.step(batch_size,ignore_stale_grad=True)
+            train_loss+=loss.asscalar()
+        print('Epoch:{}. loss: {}'.format(epoch,train_loss))
 
 
 

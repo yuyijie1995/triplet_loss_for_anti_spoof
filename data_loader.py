@@ -5,7 +5,7 @@ import cv2
 import time
 import random
 import sys
-import augs
+import aug
 import multiprocessing
 from mxnet.gluon.data import dataset
 from mxnet.gluon.data.vision import datasets, transforms
@@ -123,7 +123,7 @@ class readSequentialImages2(dataset.Dataset):
 
     def _make_sequence(self):
         while True:
-            if self._start_living + self._num_seq_living > self._frames[self._id]:
+            if self._start_living + self._num_seq_living > self._frames[self._id_living]:
                 if self._id_living < len(self._list_living) - 1:
                     self._id_living += 1
                 else:
@@ -135,7 +135,7 @@ class readSequentialImages2(dataset.Dataset):
             self._start_living += 1
 
         while True:
-            if self._start_spoof + self._num_seq_spoof > self._frames[self._id]:
+            if self._start_spoof + self._num_seq_spoof > self._frames[self._id_spoof]:
                 if self._id_spoof < len(self._list_spoof) - 1:
                     self._id_spoof += 1
                 else:
@@ -230,7 +230,7 @@ class readSequentialImages2(dataset.Dataset):
     def __len__(self):
         if self._is_train:
             return 3200
-        return self._len
+        return self._len_living+self._len_spoof
 
 
 class readSequentialImages(dataset.Dataset):
@@ -422,11 +422,11 @@ class trainTransform():
         self.color = mx.image.ColorJitterAug(0.2, 0.2, 0.2)
         self.normalize = mx.image.ColorNormalizeAug(mean=nd.array([128, 128, 128]).reshape(3, 1, 1),
                                                     std=nd.array([128, 128, 128]).reshape(3, 1, 1))
-        self.guassian_blur = augs.GuassianBlurAug(0.95)
-        self.gamma_aug = augs.RandomGammaAug(0.8)
-        self.guassian_noise = augs.GuassianNoiseAug(0, 5)
-        self.spatial_light = augs.SpatialLightAug(0.6, 0.5)
-        self.bgr2yuv = augs.Bgr2yuvAug()
+        self.guassian_blur = aug.GuassianBlurAug(0.95)
+        self.gamma_aug = aug.RandomGammaAug(0.8)
+        self.guassian_noise = aug.GuassianNoiseAug(0, 5)
+        self.spatial_light = aug.SpatialLightAug(0.6, 0.5)
+        self.bgr2yuv = aug.Bgr2yuvAug()
         if color == "GRAY":
             self.rgb_mean = nd.array([0.5]).reshape(1, 1, 1)
             self.rgb_std = nd.array([0.5]).reshape(1, 1, 1)
@@ -460,7 +460,7 @@ class valTransform():
         self.cast = mx.image.CastAug(typ='float32')
         self.normalize = mx.image.ColorNormalizeAug(mean=nd.array([128, 128, 128]).reshape(3, 1, 1),
                                                     std=nd.array([128, 128, 128]).reshape(3, 1, 1))
-        self.bgr2yuv = augs.Bgr2yuvAug()
+        self.bgr2yuv = aug.Bgr2yuvAug()
         if color == "GRAY":
             self.rgb_mean = nd.array([0.5]).reshape(1, 1, 1)
             self.rgb_std = nd.array([0.5]).reshape(1, 1, 1)
@@ -513,7 +513,7 @@ if __name__ == "__main__":
     # batch_size = 128
     # train_data = gluon.data.DataLoader(image_train, batch_size = batch_size, shuffle = True, num_workers = 4)
     # train_data = loadRec('data/rec2.5/val_rect2.5.idx', 'data/rec2.5/val_rect2.5.rec', color = "GRAY", is_train = False, batch_size = 32, num_seq = 15, random = False)
-    train_data = loadData("/mnt/data-3/data/yijie.yu/train_rect2.0_living",'/mnt/data-3/data/yijie.yu/train_rect2.0_spoof', 32, "GRAY", num_seq=3, is_train=False, random=True)
+    train_data = loadData("/mnt/data-3/data/yijie.yu/train_rect2.0_living",'/mnt/data-3/data/yijie.yu/train_rect2.0_spoof', 32, "GRAY", num_seq=2, is_train=False, random=True)
     idx = 1
     for data, label in train_data:
         idx += 1
