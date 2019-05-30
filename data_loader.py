@@ -10,6 +10,7 @@ import multiprocessing
 from mxnet.gluon.data import dataset
 from mxnet.gluon.data.vision import datasets, transforms
 from mxnet import gluon, nd
+import pdb
 from multiprocessing import Process, Lock
 
 
@@ -122,8 +123,9 @@ class readSequentialImages2(dataset.Dataset):
 
 
     def _make_sequence(self):
+        pdb.set_trace()
         while True:
-            if self._start_living + self._num_seq_living > self._frames[self._id_living]:
+            if self._start_living + self._num_seq_living > self._frames_living[self._id_living]:
                 if self._id_living < len(self._list_living) - 1:
                     self._id_living += 1
                 else:
@@ -131,11 +133,11 @@ class readSequentialImages2(dataset.Dataset):
                     self._id_living = 0
                 self._start_living = 0
             images = self._list_living[self._id_living]
-            self._seq_images_living.append(images[self._start: self._start + self._num_seq_living])
+            self._seq_images_living.append(images[self._start_living: self._start_living + self._num_seq_living])
             self._start_living += 1
 
         while True:
-            if self._start_spoof + self._num_seq_spoof > self._frames[self._id_spoof]:
+            if self._start_spoof + self._num_seq_spoof > self._frames_spoof[self._id_spoof]:
                 if self._id_spoof < len(self._list_spoof) - 1:
                     self._id_spoof += 1
                 else:
@@ -143,7 +145,7 @@ class readSequentialImages2(dataset.Dataset):
                     self._id_spoof = 0
                 self._start_spoof = 0
             images = self._list_spoof[self._id_spoof]
-            self._seq_images_spoof.append(images[self._start: self._start + self._num_seq_spoof])
+            self._seq_images_spoof.append(images[self._start_spoof: self._start_spoof + self._num_seq_spoof])
             self._start_spoof += 1
 
     def __getitem__(self, idx):
@@ -233,72 +235,6 @@ class readSequentialImages2(dataset.Dataset):
         return self._len_living+self._len_spoof
 
 
-class readSequentialImages(dataset.Dataset):
-    def __init__(self, list_path, color=1, length=3, group=1, random=False, is_train=True, transform=None):
-        self._transform = transform
-        self._list_path = list_path
-        self._length = length
-        self._is_train = is_train
-        self._random = random
-        self._color = color
-        self._group = group
-        if self._color == 0:  # read grayscale image if color is 0
-            self._channel = 1
-        else:
-            self._channel = 3
-
-    def __getitem__(self, idx):
-        # randomly choose 1 text file
-        num_list = len(os.listdir(self._list_path))
-        index = random.randint(0, num_list - 1)
-        fname = os.path.join(self._list_path, sorted(os.listdir(self._list_path))[index])
-        # randomly choose 1 sequence
-        images = [line.strip("\n") for line in open(fname)]
-
-        label_array = nd.zeros(shape=(self._length * self._group,))
-        image_array = nd.zeros(shape=(self._length * self._group, self._channel, 128, 128))  # caution
-        num_image = len(images)
-
-        if self._random:
-            rand_list = random.sample(range(0, num_image), self._length)
-            seq = 0
-            for i in rand_list:
-                image, label = images[i].split("\t")
-                if os.path.isfile(image):
-                    img = mx.image.imread(image, flag=self._color)
-                else:
-                    sys.exit(image + " cannot be found.")
-                label = nd.array([int(label)])
-                if self._transform is not None:
-                    img = self._transform(img)
-                # img = img.expand_dims(axis = 0)# nd array
-                label_array[seq] = label
-                image_array[seq] = img
-                seq += 1
-
-        else:
-            for g in range(self._group):
-                start = random.randint(0, num_image - self._length)
-                for i in range(start, start + self._length):
-                    image, label = images[i].split("\t")
-                    if os.path.isfile(image):
-                        img = mx.image.imread(image,
-                                              flag=self._color)  # rgb if self._color is 1, else grayscale is used
-                    else:
-                        sys.exit(image + " cannot be found.")
-                    label = nd.array([int(label)])
-                    if self._transform is not None:
-                        img = self._transform(img)
-                    label_array[g * self._length + i - start] = label
-                    image_array[g * self._length + i - start] = img
-
-        return image_array, label_array
-
-    def __len__(self):
-        if self._is_train:
-            return 3200
-        else:
-            return 3200
 
 
 class readSequentialImagesFromRec(dataset.Dataset):
