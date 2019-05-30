@@ -29,7 +29,7 @@ def train():
     net=get_model('resnet18_v2',pretrained=True,ctx=ctx)
     backbone=net.features[:]
     out_net=OutputNet()
-    out_net.initialize(mx.initializer.Xavier(factor_type='in',magnitude=2))
+    out_net.initialize(mx.initializer.Xavier(factor_type='in',magnitude=2),ctx=ctx)
     params=backbone.collect_params()
     params.update(out_net.collect_params())
     optimizer=mx.optimizer.SGD(learning_rate=0.001,wd=5e-4,momentum=0.9)
