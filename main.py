@@ -72,13 +72,14 @@ def train():
 
 
 if __name__=='__main__':
-    x=nd.random_uniform(shape=(1,3,128,128))
-    net=get_model('resnet18_v2',pretrained=True)
-    for layer in net:
-        x=layer(x)
-        print(layer.name,'output shape:\t',x.shape)
-
-    backbone=net.features[:]
+    # x=nd.random_uniform(shape=(1,3,128,128))
+    # net=get_model('resnet18_v2',pretrained=True)
+    # for layer in net:
+    #     x=layer(x)
+    #     print(layer.name,'output shape:\t',x.shape)
+    #
+    # backbone=net.features[:]
+    train()
 
 
 
