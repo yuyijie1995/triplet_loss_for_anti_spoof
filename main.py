@@ -38,6 +38,7 @@ def train():
 
     num_step=0
     for epoch in range(30):
+        pdb.set_trace()
         print('epoch:{}'.format(epoch))
         tic=time.time()
         train_data=loader.loadData(list_path_living=train_path_living,list_path_spoof=train_path_spoof,batch_size=batch_size,num_seq=num_seq,color=color,
