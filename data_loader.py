@@ -123,7 +123,7 @@ class readSequentialImages2(dataset.Dataset):
 
 
     def _make_sequence(self):
-        pdb.set_trace()
+        # pdb.set_trace()
         while True:
             if self._start_living + self._num_seq_living > self._frames_living[self._id_living]:
                 if self._id_living < len(self._list_living) - 1:
