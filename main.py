@@ -26,7 +26,7 @@ random = True
 
 def train():
     ctx=mx.gpu(0)
-    net=get_model('resnet18_v2',pretrained=True)
+    net=get_model('resnet18_v2',pretrained=True,ctx=ctx)
     backbone=net.features[:]
     out_net=OutputNet()
     out_net.initialize(mx.initializer.Xavier(factor_type='in',magnitude=2))
