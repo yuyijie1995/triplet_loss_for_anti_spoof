@@ -6,6 +6,36 @@ from mxnet import gluon,nd
 from gluoncv.model_zoo import get_model
 
 
+
+#
+# class Backbone(gluon.HybridBlock):
+#     def __init__(self):
+#         super(Backbone,self).__init__()
+#         with self.name_scope():
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class OutputNet(gluon.HybridBlock):
     def __init__(self):
         super(OutputNet,self).__init__()

@@ -20,14 +20,15 @@ test_path_living = '/mnt/data-3/data/yijie.yu/test_rect2.0_living'
 test_path_spoof = '/mnt/data-3/data/yijie.yu/test_rect2.0_spoof'
 
 batch_size = 32
-num_seq = 3
+num_seq = 5
 color = 'GRAY'
 random = True
 
 def train():
     ctx=mx.gpu(0)
-    net=get_model('resnet18_v2',pretrained=True,ctx=ctx)
+    net=get_model('resnet18_v2',pretrained=False)
     backbone=net.features[:]
+    backbone.initialize(mx.initializer.Xavier(factor_type='in',magnitude=2),ctx=ctx)
     out_net=OutputNet()
     out_net.initialize(mx.initializer.Xavier(factor_type='in',magnitude=2),ctx=ctx)
     params=backbone.collect_params()
@@ -58,12 +59,12 @@ def train():
             # data_a=data_anchor.reshape(data_anchor.shape[0]*data_anchor.shape[1],data_anchor.shape[2])
             with ag.record():
                 feat_anchor=backbone(data_anchor)
-                y_anchor=out_net(feat_anchor)
+                y_anchor=out_net(feat_anchor)[1]
                 feat_positive=backbone(data_positive)
-                y_positve=out_net(feat_positive)
+                y_positive=out_net(feat_positive)[1]
                 feat_negative=backbone(data_negative)
-                y_negative=out_net(feat_negative)
-                loss=triplet_loss(y_anchor,y_positve,y_negative)
+                y_negative=out_net(feat_negative)[1]
+                loss=triplet_loss(y_anchor,y_positive,y_negative)
                 loss=loss.sum()
             loss.backward()
             trainer.step(batch_size,ignore_stale_grad=True)
